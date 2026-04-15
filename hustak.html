@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hustak — bostadskalkyl</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0f0f0f;
+  --surface:#1a1a1a;
+  --surface2:#222222;
+  --border:#2e2e2e;
+  --border2:#3a3a3a;
+  --text:#f0ede8;
+  --text2:#8a8580;
+  --text3:#555250;
+  --accent:#f0ede8;
+  --green:#4ade80;
+  --green-bg:#0d2218;
+  --green-border:#1a3d2a;
+  --amber:#fbbf24;
+  --amber-bg:#1c1500;
+  --amber-border:#3a2d00;
+  --red:#f87171;
+  --red-bg:#1f0a0a;
+  --red-border:#3d1515;
+  --blue:#60a5fa;
+  --blue-bg:#0a1628;
+  --blue-border:#1a3050;
+  --purple:#c084fc;
+  --purple-bg:#160d24;
+  --purple-border:#2e1850;
+  --r:12px;
+  --r-sm:8px;
+  --shadow:0 1px 3px rgba(0,0,0,.4),0 1px 2px rgba(0,0,0,.3);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:680px;margin:0 auto;padding:20px 16px 80px}
+
+/* Tab nav */
+.tab-nav{display:flex;background:var(--surface);border-radius:var(--r);margin-bottom:14px;padding:4px;gap:2px;box-shadow:var(--shadow)}
+.tn{flex:1;padding:9px 8px;font-size:13px;font-weight:500;cursor:pointer;background:transparent;border:none;border-radius:9px;color:var(--text2);transition:all .15s;font-family:inherit}
+.tn.on{background:var(--accent);color:#0f0f0f;font-weight:600}
+.tab{display:none}.tab.on{display:block}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:10px;box-shadow:var(--shadow)}
+.st{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px}
+.tc{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pn{font-size:12px;font-weight:600;color:var(--text);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.ib{margin-bottom:12px}
+.ih{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px}
+.inn{font-size:12px;color:var(--text2)}
+.iff{font-size:12px;font-weight:600;color:var(--text)}
+.hint{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.4}
+
+/* Inputs */
+input[type=number]{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--r-sm);font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;transition:border-color .15s}
+input[type=number]:focus{outline:none;border-color:var(--accent)}
+input[type=range]{width:100%;accent-color:var(--accent);height:4px;cursor:pointer}
+
+/* Sliders */
+.sl{margin-bottom:16px}
+.slh{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px}
+.sln{font-size:13px;color:var(--text2)}
+.slv{font-size:16px;font-weight:600;color:var(--text)}
+.slb{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:4px;letter-spacing:.02em}
+
+/* Toggle groups */
+.tg{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden;width:fit-content;padding:2px;gap:2px}
+.tb{padding:5px 12px;font-size:12px;font-weight:500;cursor:pointer;background:transparent;border:none;border-radius:6px;color:var(--text2);font-family:inherit;transition:all .15s}
+.tb.on{background:var(--surface);color:var(--text);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.tgr{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text2);margin-top:12px;flex-wrap:wrap}
+
+/* Metric cards */
+.m3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.mt{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:11px 13px}
+.ml{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.mv{font-size:16px;font-weight:600;color:var(--text)}
+.ms{font-size:11px;color:var(--text3);margin-top:3px}
+
+/* Total row */
+.htr{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-radius:var(--r-sm);margin-bottom:10px;border:1.5px solid var(--border)}
+.htl{font-size:13px;color:var(--text2)}
+.htv{font-size:24px;font-weight:700;letter-spacing:-.02em}
+
+/* Gauge */
+.gw{margin:8px 0 4px}
+.gt{height:6px;border-radius:3px;background:var(--surface2);overflow:hidden;border:1px solid var(--border)}
+.gf{height:100%;border-radius:3px;transition:width .3s ease}
+
+/* Breakdown */
+.bk{border-top:1px solid var(--border);padding-top:12px;margin-top:8px}
+.br{display:flex;justify-content:space-between;padding:4px 0;font-size:13px}
+.brl{color:var(--text2)}
+.brv{font-family:'DM Mono',monospace;color:var(--text);font-weight:500;font-size:13px}
+.brd{height:1px;background:var(--border);margin:7px 0}
+.brt{display:flex;justify-content:space-between;padding:4px 0;font-size:14px;font-weight:700}
+
+/* Flags */
+.fl{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.fg{font-size:11px;font-weight:500;padding:4px 10px;border-radius:20px;letter-spacing:.01em}
+.nt{font-size:12px;color:var(--text2);margin-top:10px;line-height:1.6;padding:10px 12px;background:var(--surface2);border-radius:var(--r-sm);border:1px solid var(--border)}
+
+/* Alloc bar */
+.ab{display:flex;height:28px;border-radius:var(--r-sm);overflow:hidden;width:100%;margin:12px 0 8px}
+.seg{height:100%;transition:width .3s ease}
+.sh2{background:#c0392b}
+.sa{background-image:repeating-linear-gradient(-45deg,#c0392b 0,#c0392b 3px,#f1a89a 3px,#f1a89a 7px)}
+.so{background:#78716c}.ss{background:#2d6a2d}.sng{background:#e24b4a}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--text2);margin-bottom:12px}
+.li{display:flex;align-items:center;gap:5px;font-weight:500}
+.lsw{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+
+/* Alloc grid */
+.ag{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.an{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px}
+.anl{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.anv{font-size:15px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text)}
+
+/* Sparkvot */
+.sq{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.sqc{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px}
+.sql{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+.sqv{font-size:22px;font-weight:700;letter-spacing:-.02em}
+.sqs{font-size:11px;color:var(--text3);margin-top:4px;line-height:1.4}
+
+/* LTV timeline */
+.ltv-timeline{background:var(--blue-bg);border:1px solid var(--blue-border);border-radius:var(--r);padding:14px;margin-top:10px}
+.ltv-tl-head{font-size:10px;font-weight:700;color:var(--blue);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.ltv-tl-m3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.ltv-mt{background:#fff;border:1px solid var(--blue-border);border-radius:var(--r-sm);padding:10px 12px}
+.ltv-ml{font-size:10px;font-weight:600;color:var(--blue);letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px}
+.ltv-mv{font-size:15px;font-weight:700;color:var(--blue)}
+.ltv-ms{font-size:11px;color:#6ea0c8;margin-top:3px}
+.ltv-bk{border-top:1px solid var(--blue-border);padding-top:8px;margin-top:6px}
+.ltv-br{display:flex;justify-content:space-between;padding:3px 0;font-size:12px}
+.ltv-brl{color:#6ea0c8}
+.ltv-brv{font-family:'DM Mono',monospace;font-weight:500;color:var(--blue)}
+.ltv-brd{height:1px;background:var(--blue-border);margin:6px 0}
+.ltv-brt{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;font-weight:700;color:var(--blue)}
+.ltv-badge{display:inline-block;background:var(--blue);color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;margin-bottom:10px;letter-spacing:.04em;text-transform:uppercase}
+
+/* Pristak */
+.ctrl-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px}
+.ctrl-grp{display:flex;flex-direction:column;gap:6px}
+.ctrl-lbl{font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase}
+.p-sliders{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.divhr{height:1px;background:var(--border);margin:16px 0}
+.inc-tog{display:flex;flex-wrap:wrap;gap:5px}
+.bo{padding:6px 12px;font-size:12px;font-weight:500;cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:20px;color:var(--text2);font-family:inherit;transition:all .15s}
+.bo:hover{border-color:var(--border2)}
+.bo.on{background:var(--text);color:#fff;border-color:var(--text)}
+
+/* Scenario columns */
+.sc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.sc{border-radius:var(--r);padding:14px;border:1.5px solid var(--border);background:var(--surface);display:flex;flex-direction:column;gap:7px;box-shadow:var(--shadow)}
+.sc-head{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3)}
+.sc-sub{font-size:11px;color:var(--text3);margin-top:-3px}
+.sc-price{font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.02em;line-height:1.1}
+.sc-bind{font-size:11px;color:var(--text3)}
+.sc-hr{height:1px;background:var(--border);margin:1px 0}
+.sc-row{display:flex;justify-content:space-between;font-size:12px;padding:2px 0}
+.sc-lbl{color:var(--text2)}
+.sc-val{font-family:'DM Mono',monospace;font-weight:500;color:var(--text)}
+.sc.stress{border-color:var(--amber-border);background:var(--amber-bg)}
+.sc.stress .sc-head{color:var(--amber)}
+.sc.combo{border-color:var(--purple-border);background:var(--purple-bg)}
+.sc.combo .sc-head{color:var(--purple)}
+.pill-row{display:flex;flex-direction:column;gap:5px;margin-top:2px}
+.pill{border-radius:var(--r-sm);padding:8px 10px}
+.pill-lbl{font-size:9px;font-weight:700;opacity:.7;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.pill-val{font-size:15px;font-weight:700;font-family:'DM Mono',monospace}
+.pill-sub{font-size:10px;opacity:.7;margin-top:2px}
+.pill.pos{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green)}
+.pill.neg{background:var(--red-bg);border:1px solid var(--red-border);color:var(--red)}
+.btn{padding:7px 14px;font-size:12px;font-weight:500;cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:inherit;transition:all .15s}
+.btn:hover{border-color:var(--border2)}
+.btn.on{background:var(--text);color:#fff;border-color:var(--text)}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="tab-nav">
+  <button class="tn on" id="tn-s" onclick="showTab('s')">Inställningar</button>
+  <button class="tn" id="tn-h" onclick="showTab('h')">Bostad</button>
+  <button class="tn" id="tn-p" onclick="showTab('p')">Pristak</button>
+</div>
+
+<!-- INSTÄLLNINGAR -->
+<div class="tab on" id="tab-s">
+  <div class="card">
+    <div class="st">Inkomst & utgifter</div>
+    <div class="tc">
+      <div>
+        <div class="pn">Person 1</div>
+        <div class="ib"><div class="ih"><span class="inn">Bruttoinkomst (kr/år)</span><span class="iff" id="p1g-f">2 000 000 kr</span></div><input type="number" id="p1g" value="2000000" step="12000" oninput="sf('p1g');ra()"><div class="hint" id="p1net">—</div></div>
+        <div class="ib"><div class="ih"><span class="inn">Övriga utgifter (kr/mån)</span><span class="iff" id="p1o-f">35 000 kr</span></div><input type="number" id="p1o" value="35000" step="1000" oninput="sf('p1o');ra()"></div>
+      </div>
+      <div>
+        <div class="pn">Person 2</div>
+        <div class="ib"><div class="ih"><span class="inn">Bruttoinkomst (kr/år)</span><span class="iff" id="p2g-f">1 100 000 kr</span></div><input type="number" id="p2g" value="1100000" step="12000" oninput="sf('p2g');ra()"><div class="hint" id="p2net">—</div></div>
+        <div class="ib"><div class="ih"><span class="inn">Övriga utgifter (kr/mån)</span><span class="iff" id="p2o-f">20 000 kr</span></div><input type="number" id="p2o" value="20000" step="1000" oninput="sf('p2o');ra()"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="st">Finansiering</div>
+    <div class="sl"><div class="slh"><span class="sln">Kontantinsats</span><span class="slv" id="down-v">—</span></div><input type="range" id="down" min="2000000" max="8000000" step="100000" value="5000000" oninput="ra()"><div class="slb"><span>2 M</span><span>8 M</span></div></div>
+    <div class="sl"><div class="slh"><span class="sln">Bolåneränta</span><span class="slv" id="rate-v">—</span></div><input type="range" id="rate" min="1.00" max="7.00" step="0.01" value="2.61" oninput="ra()"><div class="slb"><span>1.00%</span><span>7.00%</span></div></div>
+    <div class="tgr"><span>Fördelning bostadskostnad:</span>
+      <div class="tg" id="sp-tg"><button class="tb on" onclick="setSplit('5050')">50 / 50</button><button class="tb" onclick="setSplit('prop')">Proportionellt</button></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="st">Schablonvärden drift (används i Pristak)</div>
+    <div class="sl"><div class="slh"><span class="sln">Renoveringsfond (% av köpeskilling/år)</span><span class="slv" id="rf-v">—</span></div><input type="range" id="rf" min="0.05" max="1.50" step="0.05" value="0.50" oninput="ra()"><div class="slb"><span>0.05%</span><span>1.50%</span></div></div>
+    <div class="tc">
+      <div class="ib" style="margin-bottom:0"><div class="ih"><span class="inn">Driftkostnad (kr/mån)</span><span class="iff" id="drift-f">6 500 kr</span></div><input type="number" id="drift" value="6500" step="500" oninput="sf('drift');ra()"></div>
+      <div class="ib" style="margin-bottom:0"><div class="ih"><span class="inn">Fastighetsskatt (kr/mån)</span><span class="iff" id="fss-f">869 kr</span></div><input type="number" id="fss" value="869" step="50" oninput="sf('fss');ra()"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOSTAD -->
+<div class="tab" id="tab-h">
+  <div class="card">
+    <div style="margin-bottom:14px">
+      <div class="tg" id="br-tg">
+        <button class="tb on" onclick="toggleBr('villa')">Villa / hus</button>
+        <button class="tb" onclick="toggleBr('brf')">Bostadsrätt</button>
+      </div>
+    </div>
+    <div class="sl"><div class="slh"><span class="sln" id="price-lbl">Köp inkl. renovering</span><span class="slv" id="price-v">—</span></div><input type="range" id="price" min="10000000" max="25000000" step="50000" value="20000000" oninput="ra()"><div class="slb"><span>10 M</span><span>25 M</span></div></div>
+    <div class="tc" style="margin-top:14px">
+      <div class="sl" style="margin-bottom:0">
+        <div class="slh"><span class="sln">Renoveringsfond (% / år)</span><span class="slv" id="h-rf-v">—</span></div>
+        <input type="range" id="h-rf-sl" min="0.00" max="1.50" step="0.05" value="0.50" oninput="ra()">
+        <div class="slb"><span>0%</span><span>1.5%</span></div>
+      </div>
+      <div class="ib" style="margin-bottom:0">
+        <div class="ih"><span class="inn">Driftkostnad (kr/mån)</span><span class="iff" id="h-drift-f">6 500 kr</span></div>
+        <input type="number" id="h-drift" value="6500" step="500" oninput="sfh('h-drift');ra()">
+        <div class="hint" id="h-fss-hint"></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="m3">
+      <div class="mt"><div class="ml">Lån</div><div class="mv" id="h-loan">—</div><div class="ms" id="h-ltv">—</div></div>
+      <div class="mt"><div class="ml">Amortering</div><div class="mv" id="h-ar">—</div><div class="ms" id="h-at">—</div></div>
+      <div class="mt"><div class="ml">Ren kostnad</div><div class="mv" id="h-pc">—</div><div class="ms">ex. amortering</div></div>
+    </div>
+    <div class="htr" id="h-tr"><span class="htl">Total kassaflöde / mån</span><span class="htv" id="h-tot">—</span></div>
+
+    <div class="bk" style="margin-top:10px">
+      <div class="br"><span class="brl">Amortering</span><span class="brv" id="h-ma">—</span></div>
+      <div class="br"><span class="brl">Ränta efter ränteavdrag</span><span class="brv" id="h-ni">—</span></div>
+      <div class="br"><span class="brl">Drift</span><span class="brv" id="h-dr">—</span></div>
+      <div class="br"><span class="brl">Renoveringsfond</span><span class="brv" id="h-rf">—</span></div>
+      <div class="br" id="h-fs-row"><span class="brl">Fastighetsskatt</span><span class="brv" id="h-fs">—</span></div>
+      <div class="brd"></div>
+      <div class="brt"><span>Totalt</span><span id="h-tot2">—</span></div>
+    </div>
+    <div class="fl" id="h-fl"></div>
+    <div class="nt" id="h-nt"></div>
+    <div id="ltv-tl-wrap"></div>
+  </div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div class="tg" id="vw-tg"><button class="tb on" onclick="setView('hh')">Hushåll</button><button class="tb" onclick="setView('p1')">Person 1</button><button class="tb" onclick="setView('p2')">Person 2</button></div>
+      <span style="font-size:13px;color:#666">Netto: <strong id="a-net" style="color:#1a1a1a">—</strong></span>
+    </div>
+    <div class="ab">
+      <div class="seg sh2" id="a-h" style="width:0%"></div>
+      <div class="seg sa" id="a-a" style="width:0%"></div>
+      <div class="seg so" id="a-o" style="width:0%"></div>
+      <div class="seg ss" id="a-s" style="width:0%"></div>
+      <div class="seg sng" id="a-n" style="width:0%"></div>
+    </div>
+    <div class="leg">
+      <span class="li"><span class="lsw" style="background:#c0392b"></span>Boendekostnad</span>
+      <span class="li"><span class="lsw" style="background-image:repeating-linear-gradient(-45deg,#a32d2d 0,#a32d2d 3px,#f0a0a0 3px,#f0a0a0 7px)"></span>Amortering</span>
+      <span class="li"><span class="lsw" style="background:#52525b"></span>Övriga utgifter</span>
+      <span class="li"><span class="lsw" style="background:#2d6a4f"></span>Sparande</span>
+    </div>
+    <div class="ag">
+      <div class="an"><div class="anl">Boendekostnad</div><div class="anv" id="an-h">—</div></div>
+      <div class="an"><div class="anl">Amortering</div><div class="anv" id="an-a">—</div></div>
+      <div class="an"><div class="anl">Övriga utgifter</div><div class="anv" id="an-o">—</div></div>
+      <div class="an"><div class="anl">Sparande</div><div class="anv" id="an-s">—</div></div>
+    </div>
+    <div class="sq">
+      <div class="sqc">
+        <div class="sql">Sparkvot inkl. amortering</div>
+        <div class="sqv" id="sq-in">—</div>
+        <div class="sqs" id="sq-in-kr">amort räknas som sparande</div>
+      </div>
+      <div class="sqc">
+        <div class="sql">Sparkvot exkl. amortering</div>
+        <div class="sqv" id="sq-ex">—</div>
+        <div class="sqs" id="sq-ex-kr">kassaöverskott efter allt</div>
+      </div>
+    </div>
+    <div id="ltv-al-wrap"></div>
+  </div>
+
+  <!-- Stress test for specific house -->
+  <div class="card" id="stress-card" style="display:none">
+    <div class="st">Stresstest — detta hus</div>
+    <div class="tc" style="margin-bottom:14px">
+      <div class="sl" style="margin-bottom:0">
+        <div class="slh"><span class="sln">Stressränta</span><span class="slv" id="h-sr-v">5.0%</span></div>
+        <input type="range" id="h-sr" min="2.6" max="8.0" step="0.1" value="5.0" oninput="rStress()">
+        <div class="slb"><span>2.6%</span><span>8.0%</span></div>
+      </div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Inkomstscenario</div>
+        <div class="inc-tog" id="h-inc-g">
+          <button class="bo on" onclick="setHInc('none')">Ingen</button>
+          <button class="bo" onclick="setHInc('p1_half')">P1 −50%</button>
+          <button class="bo" onclick="setHInc('p1_zero')">P1 −100%</button>
+          <button class="bo" onclick="setHInc('p2_half')">P2 −50%</button>
+          <button class="bo" onclick="setHInc('p2_zero')">P2 −100%</button>
+          <button class="bo" onclick="setHInc('foraldra')">Föräldraledighet</button>
+        </div>
+      </div>
+    </div>
+    <div id="stress-output"></div>
+  </div>
+</div>
+
+<!-- PRISTAK -->
+<div class="tab" id="tab-p">
+  <div class="card">
+    <div class="ctrl-row">
+      <div class="ctrl-grp">
+        <span class="ctrl-lbl">Måltyp</span>
+        <div class="tg" id="tm-tg">
+          <button class="tb on" onclick="setTm('kr')">Kr / mån</button>
+          <button class="tb" onclick="setTm('pct')">Sparkvot %</button>
+        </div>
+      </div>
+      <div class="ctrl-grp">
+        <span class="ctrl-lbl">Amortering räknas som</span>
+        <div class="tg" id="am-tg">
+          <button class="tb on" onclick="setAm('ex')">Sparande</button>
+          <button class="tb" onclick="setAm('in')">Kostnad</button>
+        </div>
+      </div>
+    </div>
+    <div class="p-sliders">
+      <div>
+        <div class="slh"><span class="sln">Person 1 — sparmål</span><span class="slv" id="t1-v">—</span></div>
+        <input type="range" id="t1" min="0" max="50000" step="1000" value="20000" oninput="rp()">
+        <div class="slb" id="t1-b"><span>0 kr</span><span>50 000 kr</span></div>
+        <div class="hint" id="t1-h">—</div>
+      </div>
+      <div>
+        <div class="slh"><span class="sln">Person 2 — sparmål</span><span class="slv" id="t2-v">—</span></div>
+        <input type="range" id="t2" min="0" max="50000" step="1000" value="15000" oninput="rp()">
+        <div class="slb" id="t2-b"><span>0 kr</span><span>50 000 kr</span></div>
+        <div class="hint" id="t2-h">—</div>
+      </div>
+    </div>
+    <div class="divhr"></div>
+    <div class="tc">
+      <div>
+        <div class="ctrl-lbl" style="margin-bottom:8px">Stressränta (kol. 2 & 3)</div>
+        <div class="slh"><span></span><span class="slv" id="sr-v">—</span></div>
+        <input type="range" id="sr" min="2.6" max="8.0" step="0.1" value="5.0" oninput="rp()">
+        <div class="slb"><span>2.6%</span><span>8.0%</span></div>
+      </div>
+      <div>
+        <div class="ctrl-lbl" style="margin-bottom:8px">Inkomstscenario (kol. 3)</div>
+        <div class="inc-tog" id="inc-g">
+          <button class="bo on" onclick="setInc('none')">Ingen</button>
+          <button class="bo" onclick="setInc('p1_half')">P1 −50%</button>
+          <button class="bo" onclick="setInc('p1_zero')">P1 −100%</button>
+          <button class="bo" onclick="setInc('p2_half')">P2 −50%</button>
+          <button class="bo" onclick="setInc('p2_zero')">P2 −100%</button>
+          <button class="bo" onclick="setInc('foraldra')">Föräldraledighet</button>
+        </div>
+        <div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <button class="bo" id="rf-pause-btn" onclick="toggleRfPause()" style="font-size:11px">Pausa renoveringsfond</button>
+          <span style="font-size:11px;color:#999" id="rf-pause-hint">Drar ner kolumn 3 till rf = 0 kr/mån</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="sc-grid" id="sc-grid"></div>
+</div>
+</div>
+
+<script>
+const PBB=59200, KI=0.3055;
+const THR1=40000, THR2=50000, THRMAX=90000;
+let CV='hh', SP='5050', INC='none', H_INC='none', TM='kr', AM='ex', SHOW_LTV_TL=false, SHOW_LTV_AL=false, RF_PAUSE=false, LHC=null;
+
+const fmt = n => Math.round(n).toLocaleString('sv-SE');
+const fmtM = n => (Math.round(n/100000)/10).toLocaleString('sv-SE',{minimumFractionDigits:1})+' M';
+const fK = n => fmt(n)+' kr';
+const g = id => document.getElementById(id);
+
+function sf(id){const v=parseInt(g(id).value)||0;const f=id+'-f';if(g(f))g(f).textContent=fK(v);}
+function showTab(t){['s','h','p'].forEach(x=>{g('tab-'+x).className='tab'+(x===t?' on':'');g('tn-'+x).className='tn'+(x===t?' on':'');});if(t==='p')rp();}
+function setSplit(s){SP=s;g('sp-tg').querySelectorAll('.tb').forEach((b,i)=>b.className='tb'+(['5050','prop'][i]===s?' on':''));rAl();if(g('tab-p').className.includes('on'))rp();}
+function setView(v){CV=v;g('vw-tg').querySelectorAll('.tb').forEach((b,i)=>b.className='tb'+(['hh','p1','p2'][i]===v?' on':''));rAl();}
+function setInc(sc){INC=sc;g('inc-g').querySelectorAll('.bo').forEach((b,i)=>b.className='bo'+(['none','p1_half','p1_zero','p2_half','p2_zero','foraldra'][i]===sc?' on':''));rp();}
+function setTm(m){TM=m;g('tm-tg').querySelectorAll('.tb').forEach((b,i)=>b.className='tb'+(['kr','pct'][i]===m?' on':''));syncSliders();rp();}
+function setAm(m){AM=m;g('am-tg').querySelectorAll('.tb').forEach((b,i)=>b.className='tb'+(['ex','in'][i]===m?' on':''));rp();}
+function toggleLtvTl(){SHOW_LTV_TL=!SHOW_LTV_TL;const btn=g('ltv-tl-btn');if(btn)btn.className='btn'+(SHOW_LTV_TL?' on':'');rHouse();}
+function toggleLtvAl(){SHOW_LTV_AL=!SHOW_LTV_AL;const btn=g('ltv-al-btn');if(btn)btn.className='btn'+(SHOW_LTV_AL?' on':'');rAl();}
+function toggleRfPause(){RF_PAUSE=!RF_PAUSE;const btn=g('rf-pause-btn');if(btn)btn.className='bo'+(RF_PAUSE?' on':'');const hint=g('rf-pause-hint');if(hint)hint.textContent=RF_PAUSE?'Renoveringsfond pausad i kol. 3':'Drar ner kolumn 3 till rf = 0 kr/mån';rp();}
+const SAVE_KEYS=['p1g','p2g','p1o','p2o','down','rate','rf','drift','fss','price','t1','t2','sr','h-sr','h-drift','h-rf-sl'];
+function save(){
+  const d={};
+  SAVE_KEYS.forEach(id=>{const el=g(id);if(!el)return;d[id]=el.value;});
+  d['SP']=SP;d['TM']=TM;d['AM']=AM;d['INC']=INC;d['BR_TYPE']=BR_TYPE;
+  try{localStorage.setItem('hustak',JSON.stringify(d));}catch(e){}
+}
+
+function load(){
+  let d;try{d=JSON.parse(localStorage.getItem('hustak'));}catch(e){}
+  if(!d)return;
+  SAVE_KEYS.forEach(id=>{const el=g(id);if(!el||d[id]===undefined)return;el.value=d[id];});
+  if(d.SP)setSplit(d.SP);
+  if(d.TM)setTm(d.TM);
+  if(d.AM)setAm(d.AM);
+  if(d.INC)setInc(d.INC);
+  if(d.BR_TYPE){BR_TYPE=d.BR_TYPE;g('br-tg').querySelectorAll('.tb').forEach((b,i)=>b.className='tb'+(['villa','brf'][i]===d.BR_TYPE?' on':''));g('price-lbl').textContent=d.BR_TYPE==='brf'?'Köpeskilling':'Köp inkl. renovering';}
+  ['p1g','p2g','p1o','p2o','drift','fss'].forEach(id=>sf(id));
+  sfh('h-drift');
+}
+function setHInc(sc){H_INC=sc;g('h-inc-g').querySelectorAll('.bo').forEach((b,i)=>b.className='bo'+(['none','p1_half','p1_zero','p2_half','p2_zero','foraldra'][i]===sc?' on':''));rStress();}
+
+function rStress(){
+  if(!LHC)return;
+  const price=gPrice(),down=gDown(),rfPct=gHRf(),drift=gHDrift(),fss=gHFss();
+  const sr=parseFloat(g('h-sr').value)/100;
+  g('h-sr-v').textContent=(sr*100).toFixed(1)+'%';
+  const p1g=gP1g(),p2g=gP2g(),p1o=gP1o(),p2o=gP2o();
+  const p1n=netM(p1g),p2n=netM(p2g);
+  // Stressed incomes
+  let sp1n=p1n,sp2n=p2n,incLbl='Normalläge',sAmort=null;
+  if(H_INC==='p1_half'){sp1n=netM(p1g*0.5);incLbl='P1 −50%';}
+  else if(H_INC==='p1_zero'){sp1n=0;incLbl='P1 −100%';}
+  else if(H_INC==='p2_half'){sp2n=netM(p2g*0.5);incLbl='P2 −50%';}
+  else if(H_INC==='p2_zero'){sp2n=0;incLbl='P2 −100%';}
+  else if(H_INC==='foraldra'){sp1n=netM(p1g*0.60);sp2n=netM(p2g*0.60);incLbl='Föräldraledighet';sAmort=0;}
+  // Stressed house cost
+  const rs=ch(price,down,rfPct,sr,drift,fss,sAmort);
+  if(!rs){g('stress-output').innerHTML=`<div style="color:var(--red);font-size:13px">Kan ej beräknas vid dessa värden</div>`;return;}
+  const rt=getRt(sp1n,sp2n);
+  const metric=rs.hc; // always exkl amort for clarity
+  const p1s=sp1n-p1o-rs.total*rt, p2s=sp2n-p2o-rs.total*(1-rt);
+  const tn=sp1n+sp2n,to=p1o+p2o;
+  const sav=tn-rs.total-to;
+  // Base comparison
+  const rb=LHC;
+  const deltaTotal=Math.round(rs.total-rb.total);
+  const col=rs.total<=40000?'var(--green)':rs.total<=55000?'var(--amber)':'var(--red)';
+  const colB=rs.total<=40000?'var(--green-bg)':rs.total<=55000?'var(--amber-bg)':'var(--red-bg)';
+  const colBorder=rs.total<=40000?'var(--green-border)':rs.total<=55000?'var(--amber-border)':'var(--red-border)';
+  const p1ok=p1s>=0,p2ok=p2s>=0;
+  g('stress-output').innerHTML=`
+    <div style="border:1.5px solid ${colBorder};background:${colB};border-radius:var(--r-sm);padding:12px 14px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;color:${col};letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">${(sr*100).toFixed(1)}% ränta · ${incLbl}${sAmort===0?' · amort pausad':''}</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline">
+        <span style="font-size:13px;color:var(--text2)">Kassaflöde</span>
+        <span style="font-size:22px;font-weight:700;color:${col};letter-spacing:-.02em">${fK(Math.round(rs.total))}/mån</span>
+      </div>
+      <div style="font-size:12px;color:var(--text2);margin-top:3px">${deltaTotal>=0?'+':''}${fK(deltaTotal)} vs nuläge</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px">
+        <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">Amortering</div>
+        <div style="font-size:15px;font-weight:600;font-family:'DM Mono',monospace">${fK(Math.round(rs.ma))}/mån</div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px 12px">
+        <div style="font-size:10px;font-weight:700;color:var(--text3);letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px">Ränta</div>
+        <div style="font-size:15px;font-weight:600;font-family:'DM Mono',monospace">${fK(Math.round(rs.ni))}/mån</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div class="pill ${p1ok?'pos':'neg'}">
+        <div class="pill-lbl">P1 överskott</div>
+        <div class="pill-val">${fK(Math.round(p1s))}/mån</div>
+        <div class="pill-sub">netto ${fK(Math.round(sp1n))}/mån</div>
+      </div>
+      <div class="pill ${p2ok?'pos':'neg'}">
+        <div class="pill-lbl">P2 överskott</div>
+        <div class="pill-val">${fK(Math.round(p2s))}/mån</div>
+        <div class="pill-sub">netto ${fK(Math.round(sp2n))}/mån</div>
+      </div>
+    </div>`;
+}
+
+function syncSliders(){
+  const isPct=TM==='pct';
+  ['t1','t2'].forEach(id=>{
+    const el=g(id);const cur=parseFloat(el.value);
+    if(isPct){el.min=0;el.max=50;el.step=1;if(cur>50)el.value=20;}
+    else{el.min=0;el.max=50000;el.step=1000;if(cur<=50)el.value=20000;}
+  });
+}
+
+function netM(Y){
+  if(!Y||Y<=0)return 0;
+  let GA;
+  if(Y<=0.99*PBB)GA=Math.ceil(0.423*PBB/100)*100;
+  else if(Y<=2.72*PBB)GA=Math.ceil((0.423*PBB+0.20*(Y-0.99*PBB))/100)*100;
+  else if(Y<=3.11*PBB)GA=Math.ceil(0.77*PBB/100)*100;
+  else if(Y<=7.88*PBB)GA=Math.ceil((0.77*PBB-0.10*(Y-3.11*PBB))/100)*100;
+  else GA=Math.ceil(0.293*PBB/100)*100;
+  const BFI=Math.max(0,Y-GA),mun=BFI*KI,bur=BFI*0.0007,st=Math.max(0,BFI-643000)*0.20,ps=Math.min(BFI*0.01,1184);
+  let JA;
+  if(Y<=0.91*PBB)JA=(Y-GA)*KI;
+  else if(Y<=3.24*PBB)JA=(0.91*PBB+0.3874*(Y-0.91*PBB)-GA)*KI;
+  else if(Y<=8.08*PBB)JA=(1.813*PBB+0.251*(Y-3.24*PBB)-GA)*KI;
+  else JA=(3.027*PBB-GA)*KI;
+  JA=Math.max(0,Math.floor(JA));
+  const fr=Math.min(Math.max(0,(BFI-40000)*0.0075),1500);
+  return(Y-(mun+bur+st+ps-JA-fr))/12;
+}
+
+function ch(price,down,rfPct,rate,drift,fss,forceAmort=null){
+  const loan=price-down;if(loan<=0)return null;
+  const ltv=loan/price;if(ltv>0.85)return null;
+  const ar=forceAmort!==null?forceAmort:(ltv>0.70?0.02:0.01);
+  const ma=loan*ar/12;
+  const ai=loan*rate,ded=Math.min(ai,200000)*0.30+Math.max(0,ai-200000)*0.21;
+  const ni=(ai-ded)/12,rf=price*rfPct/100/12,hc=ni+drift+rf+fss;
+  return{loan,ltv,ar,ma,ni,drift,rf,fss,hc,total:ma+hc};
+}
+
+// Years until LTV reaches 70% (fixed amort on original loan)
+function yearsToLtv70(loan,price,ar){
+  const target=price*0.70;
+  if(loan<=target)return 0;
+  return(loan-target)/(loan*ar);
+}
+
+function quarterLabel(yrs){
+  if(yrs<=0)return'nu';
+  if(yrs<1)return`om ${Math.round(yrs*12)} mån`;
+  return`om ${yrs.toFixed(1)} år`;
+}
+
+function getRt(p1n,p2n){return SP==='5050'?0.5:(p1n+p2n>0?p1n/(p1n+p2n):0.5);}
+
+function findCeil(t1,t2,p1n,p2n,p1o,p2o,down,rfPct,rate,fss,drift,forceAmort=null){
+  const rt=getRt(p1n,p2n),rt2=1-rt;
+  let m1,m2;
+  if(TM==='kr'){m1=rt>0?(p1n-p1o-t1)/rt:1e12;m2=rt2>0?(p2n-p2o-t2)/rt2:1e12;}
+  else{m1=rt>0?(p1n*(1-t1/100)-p1o)/rt:1e12;m2=rt2>0?(p2n*(1-t2/100)-p2o)/rt2:1e12;}
+  const maxM=Math.min(m1,m2);
+  const binding=m1<=m2?'P1':'P2';
+  if(maxM<=0)return{ceil:null,binding};
+  let lo=2e6,hi=100e6;
+  for(let i=0;i<60;i++){
+    const mid=(lo+hi)/2;
+    const r=ch(mid,down,rfPct,rate,drift,fss,forceAmort);
+    const metric=r?(AM==='ex'?r.hc:r.total):1e12;
+    if(metric<maxM)lo=mid;else hi=mid;
+  }
+  const c=Math.round((lo+hi)/2/50000)*50000;
+  return{ceil:c<3e6?null:c,binding};
+}
+
+function cashFlow(price,p1n,p2n,p1o,p2o,down,rfPct,rate,fss,drift,forceAmort=null){
+  const r=ch(price,down,rfPct,rate,drift,fss,forceAmort);
+  if(!r)return null;
+  const rt=getRt(p1n,p2n);
+  const metric=AM==='ex'?r.hc:r.total;
+  const p1s=p1n-p1o-metric*rt,p2s=p2n-p2o-metric*(1-rt);
+  return{r,p1s,p2s,p1pct:p1n>0?p1s/p1n*100:null,p2pct:p2n>0?p2s/p2n*100:null,total:r.total};
+}
+
+function pillHtml(label,val,pct,target){
+  const pos=val>=target;
+  const valStr=TM==='kr'?fK(Math.round(val)):(pct!==null?pct.toFixed(0)+'%':'—');
+  const tStr=TM==='kr'?fK(Math.round(target)):(target+'%');
+  const diff=TM==='kr'?Math.round(val-target):(pct!==null?Math.round(pct-target):null);
+  const diffStr=diff!==null?(diff>=0?'+'+fK(diff):fK(diff)):null;
+  return`<div class="pill ${pos?'pos':'neg'}">
+    <div class="pill-lbl">${label}</div>
+    <div class="pill-val">${valStr}/mån</div>
+    ${diffStr?`<div class="pill-sub">${diffStr} mot mål ${tStr}</div>`:''}
+  </div>`;
+}
+
+function colNorm(ceil,binding,cf,t1,t2,rate){
+  if(!ceil)return`<div class="sc"><div class="sc-head">Normalläge</div><div class="sc-sub">${(rate*100).toFixed(2)}% ränta</div><div style="font-size:13px;color:#f87171;margin-top:8px">Sparmålet överstiger tillgänglig inkomst</div></div>`;
+  return`<div class="sc">
+    <div class="sc-head">Normalläge</div>
+    <div class="sc-sub">${(rate*100).toFixed(2)}% ränta</div>
+    <div class="sc-price">${fmtM(ceil)} kr</div>
+    <div class="sc-bind">Begränsat av ${binding}</div>
+    <div class="sc-hr"></div>
+    <div class="sc-row"><span class="sc-lbl">Kassaflöde vid pristaket</span><span class="sc-val">${cf?fK(Math.round(cf.total)):'-'}/mån</span></div>
+  </div>`;
+}
+
+function colStress(ceil,binding,cf,t1,t2,baselineCeil,sr){
+  if(!ceil)return`<div class="sc stress"><div class="sc-head">Räntetopp</div><div class="sc-sub">${(sr*100).toFixed(1)}% ränta</div><div style="font-size:13px;color:#f87171;margin-top:8px">Sparmålet ej möjligt vid denna ränta</div></div>`;
+  const diff=baselineCeil?ceil-baselineCeil:null;
+  return`<div class="sc stress">
+    <div class="sc-head">Räntetopp</div>
+    <div class="sc-sub">${(sr*100).toFixed(1)}% ränta</div>
+    <div class="sc-price">${fmtM(ceil)} kr</div>
+    <div class="sc-bind">Begränsat av ${binding}</div>
+    ${diff!==null?`<div style="font-size:12px;font-weight:600;color:${diff<0?'#f87171':'#4ade80'}">${diff>=0?'+':''}${fmt(diff)} kr vs normalläge</div>`:''}
+    <div class="sc-hr"></div>
+    <div class="sc-row"><span class="sc-lbl">Kassaflöde vid pristaket</span><span class="sc-val">${cf?fK(Math.round(cf.total)):'-'}/mån</span></div>
+  </div>`;
+}
+
+function colCombo(baselineCeil,cfCombo,cfRateOnly,t1,t2,incLbl,sr){
+  const isRateOnly=INC==='none';
+  const head=isRateOnly?'Räntetopp (kassaflöde)':'Kombinerat stress';
+  const rfNote=RF_PAUSE?' · rf pausad':'';
+  const sub=isRateOnly?`${(sr*100).toFixed(1)}% ränta vid normalläge-pristaket${rfNote}`:`${(sr*100).toFixed(1)}% ränta · ${incLbl}${rfNote}`;
+  const cf=isRateOnly?cfRateOnly:cfCombo;
+  if(!baselineCeil)return`<div class="sc combo"><div class="sc-head">${head}</div><div class="sc-sub">${sub}</div><div style="font-size:13px;color:#f87171;margin-top:8px">Inget pristak att utgå från</div></div>`;
+  if(!cf)return`<div class="sc combo"><div class="sc-head">${head}</div><div class="sc-sub">${sub}</div><div style="font-size:12px;color:#aaa;margin-top:8px;font-style:italic">Välj ett inkomstscenario för kombinerat test</div></div>`;
+  const refNote=isRateOnly?'':`<div style="font-size:11px;color:#888">Vid normalläge-pristaket ${fmtM(baselineCeil)} kr</div>`;
+  return`<div class="sc combo">
+    <div class="sc-head">${head}</div>
+    <div class="sc-sub">${sub}</div>
+    ${refNote}
+    <div class="sc-hr"></div>
+    <div class="sc-row"><span class="sc-lbl">Kassaflöde</span><span class="sc-val">${fK(Math.round(cf.total))}/mån</span></div>
+    <div class="sc-hr"></div>
+    <div class="pill-row">${pillHtml('P1 överskott',cf.p1s,cf.p1pct,t1)}${pillHtml('P2 överskott',cf.p2s,cf.p2pct,t2)}</div>
+  </div>`;
+}
+
+function incScenario(sc){
+  const p1g=gP1g(),p2g=gP2g();
+  if(sc==='p1_half')return{p1n:netM(p1g*0.5),p2n:netM(p2g),lbl:'P1 −50%',amort:null};
+  if(sc==='p1_zero')return{p1n:0,p2n:netM(p2g),lbl:'P1 −100%',amort:null};
+  if(sc==='p2_half')return{p1n:netM(p1g),p2n:netM(p2g*0.5),lbl:'P2 −50%',amort:null};
+  if(sc==='p2_zero')return{p1n:netM(p1g),p2n:0,lbl:'P2 −100%',amort:null};
+  if(sc==='foraldra')return{p1n:netM(p1g*0.60),p2n:netM(p2g*0.60),lbl:'Föräldraledighet',amort:0};
+  return{p1n:netM(p1g),p2n:netM(p2g),lbl:'Normalläge',amort:null};
+}
+
+const gDown=()=>parseInt(g('down').value)||5000000;
+const gRate=()=>parseFloat(g('rate').value)/100;
+const gRf=()=>parseFloat(g('rf').value);        // settings — for pristak
+const gDrift=()=>parseInt(g('drift').value)||6500; // settings — for pristak
+const gFss=()=>parseInt(g('fss').value)||0;        // settings — for pristak
+const gHRf=()=>parseFloat(g('h-rf-sl').value);     // bostad-specific
+const gHDrift=()=>parseInt(g('h-drift').value)||0; // bostad-specific
+const gHFss=()=>BR_TYPE==='brf'?0:(parseInt(g('fss').value)||869); // 0 for BRF
+const gPrice=()=>parseInt(g('price').value)||0;
+const gP1g=()=>parseInt(g('p1g').value)||0;
+const gP2g=()=>parseInt(g('p2g').value)||0;
+const gP1o=()=>parseInt(g('p1o').value)||0;
+const gP2o=()=>parseInt(g('p2o').value)||0;
+function sfh(id){const v=parseInt(g(id).value)||0;const f=id+'-f';if(g(f))g(f).textContent=fK(v);}
+
+let BR_TYPE='villa';
+function toggleBr(type){
+  BR_TYPE=type;
+  g('br-tg').querySelectorAll('.tb').forEach((b,i)=>b.className='tb'+(['villa','brf'][i]===type?' on':''));
+  const isBrf=type==='brf';
+  g('price-lbl').textContent=isBrf?'Köpeskilling':'Köp inkl. renovering';
+  g('h-fss-hint').textContent=isBrf?'Fastighetsskatt: 0 kr (BRF)':'Fastighetsskatt: '+fK(parseInt(g('fss').value)||869)+'/mån';
+  if(isBrf){
+    g('h-rf-sl').value=0.20;
+    g('h-drift').value=8000; sfh('h-drift');
+  } else {
+    g('h-rf-sl').value=parseFloat(g('rf').value)||0.50;
+    g('h-drift').value=parseInt(g('drift').value)||6500; sfh('h-drift');
+  }
+  save();ra();
+}
+
+function rSet(){
+  g('down-v').textContent=fmtM(gDown())+' kr';
+  g('rate-v').textContent=(gRate()*100).toFixed(2)+'%';
+  g('rf-v').textContent=gRf().toFixed(2)+'%';
+  if(g('h-rf-v'))g('h-rf-v').textContent=gHRf().toFixed(2)+'%';
+  if(g('h-fss-hint'))g('h-fss-hint').textContent=BR_TYPE==='brf'?'Fastighetsskatt: 0 kr (BRF)':'Fastighetsskatt: '+fK(parseInt(g('fss').value)||869)+'/mån';
+  g('p1net').textContent='Netto ~'+fK(Math.round(netM(gP1g())))+'/mån';
+  g('p2net').textContent='Netto ~'+fK(Math.round(netM(gP2g())))+'/mån';
+}
+
+function rHouse(){
+  g("h-rf-v").textContent=gHRf().toFixed(2)+"%"; const price=gPrice(),down=gDown(),rfPct=gHRf(),rate=gRate(),drift=gHDrift(),fss=gHFss();
+  g('price-v').textContent=fK(price);
+  const r=ch(price,down,rfPct,rate,drift,fss);
+  if(!r){g('h-tot').textContent='Ej möjligt';LHC=null;g('ltv-tl-wrap').innerHTML='';return;}
+  LHC=r;
+  g('h-loan').textContent=fmtM(r.loan);g('h-ltv').textContent='LTV '+Math.round(r.ltv*100)+'%';
+  g('h-ar').textContent=(r.ar*100).toFixed(0)+'% / år';
+  g('h-at').textContent=r.ltv>0.70?'LTV >70%':'LTV ≤70%';
+  g('h-pc').textContent=fK(Math.round(r.hc));
+  g('h-ma').textContent=fK(Math.round(r.ma));g('h-ni').textContent=fK(Math.round(r.ni));
+  g('h-dr').textContent=fK(r.drift);g('h-rf').textContent=fK(Math.round(r.rf));g('h-fs').textContent=fK(r.fss);
+  const fsRow=g('h-fs-row');if(fsRow)fsRow.style.display=r.fss===0?'none':'flex';
+  g('h-tot').textContent=fK(Math.round(r.total));g('h-tot2').textContent=fK(Math.round(r.total));
+  const col=r.total<=THR1?'#4ade80':r.total<=THR2?'#fbbf24':'#f87171';
+  g('h-tr').style.borderColor=col+'55';g('h-tr').style.background=col+'18';g('h-tot').style.color=col;
+  const fl=[];
+  if(r.ltv>0.70)fl.push({t:'2% amortering — LTV >70%',bg:'#fff8e8',tc:'#7a4d00'});
+  else fl.push({t:'1% amortering — LTV ≤70%',bg:'#f0f9e6',tc:'#4ade80'});
+  g('h-fl').innerHTML=fl.map(f=>`<span class="fg" style="background:${f.bg};color:${f.tc}">${f.t}</span>`).join('');
+  g('h-nt').textContent=r.hc<=THR1&&r.total>THR1?`Amorteringen (${fK(Math.round(r.ma))}/mån) är tvingat sparande — ren boendekostnad: ${fK(Math.round(r.hc))}/mån.`:'';
+
+  // Show stress test card
+  const sc=g('stress-card');
+  if(sc)sc.style.display='block';
+  rStress();
+
+  // LTV 70% timeline — only when starting meaningfully above 70%
+  if(r.ltv>0.70){
+    const yrs=yearsToLtv70(r.loan,price,r.ar);
+    const extraDown=Math.max(0,Math.round(price*0.30-down));
+    // If essentially at threshold (< 3 months away or < 200k extra insats), suppress
+    if(yrs<0.25&&extraDown<200000){g('ltv-tl-wrap').innerHTML='';SHOW_LTV_TL=false;return;}
+    const r70=ch(price,price*0.30,rfPct,rate,drift,fss);
+    const saving=r70?r.ma-r70.ma:0;
+    const extraNote=extraDown>=100000?`<div style="font-size:11px;color:#888;margin-top:4px">Alternativt: ${fmtM(extraDown)} kr extra kontantinsats nu för LTV ≤70% direkt</div>`:'';
+    const tlHtml=SHOW_LTV_TL&&r70?`
+      <div class="ltv-timeline">
+        <div class="ltv-tl-head">Kassaflöde vid LTV 70% — ${quarterLabel(yrs)}</div>
+        <div class="ltv-badge">Amortering 2% → 1%</div>
+        <div class="ltv-tl-m3">
+          <div class="ltv-mt"><div class="ltv-ml">Lån vid LTV 70%</div><div class="ltv-mv">${fmtM(price*0.70)}</div><div class="ltv-ms">LTV exakt 70%</div></div>
+          <div class="ltv-mt"><div class="ltv-ml">Amortering</div><div class="ltv-mv">${fK(Math.round(r70.ma))}/mån</div><div class="ltv-ms">sparar ${fK(Math.round(saving))}/mån</div></div>
+          <div class="ltv-mt"><div class="ltv-ml">Tidpunkt</div><div class="ltv-mv">${quarterLabel(yrs)}</div><div class="ltv-ms">ca ${yrs.toFixed(1)} år</div></div>
+        </div>
+        <div class="ltv-bk">
+          <div class="ltv-br"><span class="ltv-brl">Amortering</span><span class="ltv-brv">${fK(Math.round(r70.ma))}</span></div>
+          <div class="ltv-br"><span class="ltv-brl">Ränta efter ränteavdrag</span><span class="ltv-brv">${fK(Math.round(r70.ni))}</span></div>
+          <div class="ltv-br"><span class="ltv-brl">Drift</span><span class="ltv-brv">${fK(r70.drift)}</span></div>
+          <div class="ltv-br"><span class="ltv-brl">Renoveringsfond</span><span class="ltv-brv">${fK(Math.round(r70.rf))}</span></div>
+          <div class="ltv-br"><span class="ltv-brl">Fastighetsskatt</span><span class="ltv-brv">${fK(r70.fss)}</span></div>
+          <div class="ltv-brd"></div>
+          <div class="ltv-brt"><span>Totalt</span><span>${fK(Math.round(r70.total))}</span></div>
+        </div>
+      </div>`:'';
+    g('ltv-tl-wrap').innerHTML=`
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;flex-wrap:wrap;gap:6px">
+        <span style="font-size:12px;color:#4a7aaa;font-weight:600">LTV 70% nås ${quarterLabel(yrs)}</span>
+        <button class="btn${SHOW_LTV_TL?' on':''}" id="ltv-tl-btn" onclick="toggleLtvTl()">Visa</button>
+      </div>
+      ${extraNote}
+      ${tlHtml}`;
+  } else {
+    g('ltv-tl-wrap').innerHTML='';
+    SHOW_LTV_TL=false;
+  }
+  rAl();
+}
+
+function rAl(){
+  if(!LHC)return;
+  // Always use actual 2% amort for the allocation bar and sparkvot
+  // (the 1% toggle is just for the breakdown display, not the income allocation)
+  const r=LHC,p1n=netM(gP1g()),p2n=netM(gP2g()),tn=p1n+p2n,p1o=gP1o(),p2o=gP2o();
+  let net,house,amort,other;
+  if(CV==='hh'){net=tn;house=r.hc;amort=r.ma;other=p1o+p2o;}
+  else{
+    const pn=CV==='p1'?p1n:p2n,po=CV==='p1'?p1o:p2o;
+    const rt=SP==='5050'?0.5:(tn>0?(CV==='p1'?p1n:p2n)/tn:0.5);
+    net=pn;house=r.hc*rt;amort=r.ma*rt;other=po;
+  }
+  const sav=net-house-amort-other,ns=net>0?net:1;
+  g('a-net').textContent=fK(Math.round(net))+'/mån';
+  const hp=Math.min(house/ns*100,100),ap=Math.min(amort/ns*100,Math.max(0,100-hp));
+  const op=Math.min(other/ns*100,Math.max(0,100-hp-ap));
+  const sp=sav>=0?Math.max(0,100-hp-ap-op):0,np=sav<0?Math.min(Math.abs(sav)/ns*100,100-hp-ap-op):0;
+  g('a-h').style.width=hp+'%';g('a-a').style.width=ap+'%';g('a-o').style.width=op+'%';g('a-s').style.width=sp+'%';g('a-n').style.width=np+'%';
+  g('an-h').textContent=fK(Math.round(house));g('an-a').textContent=fK(Math.round(amort));g('an-o').textContent=fK(Math.round(other));
+  const sv=g('an-s');sv.textContent=fK(Math.round(sav));sv.style.color=sav>=0?'#4ade80':'#f87171';
+
+  // Sparkvot:
+  // inkl. amortering = amort counts as savings → surplus = net - house_excl_amort - other = net - hc - other
+  // exkl. amortering = cash only → surplus = net - total_house - other = sav
+  const sqIn=net-house-other;   // inkl amort as savings (higher)
+  const sqEx=sav;               // exkl amort = pure cash after everything (lower)
+  const pIn=net>0?sqIn/net*100:0,pEx=net>0?sqEx/net*100:0;
+  const cIn=pIn<10?'#f87171':pIn<20?'#fbbf24':'#4ade80';
+  const cEx=pEx<0?'#f87171':pEx<10?'#fbbf24':'#4ade80';
+  g('sq-in').textContent=pIn.toFixed(0)+'%';g('sq-in').style.color=cIn;
+  g('sq-in-kr').textContent=fK(Math.round(sqIn))+'/mån · amort räknas som sparande';
+  g('sq-ex').textContent=pEx.toFixed(0)+'%';g('sq-ex').style.color=cEx;
+  g('sq-ex-kr').textContent=fK(Math.round(sqEx))+'/mån · kassaöverskott efter allt';
+
+  // LTV 70% allocation section
+  const alWrap=g('ltv-al-wrap');
+  if(!alWrap)return;
+  if(r.ltv<=0.70){alWrap.innerHTML='';return;}
+  const price=gPrice(),down=gDown(),rfPct=gRf(),rate=gRate(),drift=gDrift(),fss=gFss();
+  const r70=ch(price,price*0.30,rfPct,rate,drift,fss);
+  const yrs=yearsToLtv70(r.loan,price,r.ar);
+  if(yrs<0.25){alWrap.innerHTML='';return;} // already essentially there
+  let al70Html='';
+  if(SHOW_LTV_AL&&r70){
+    let net70,house70,amort70,other70;
+    if(CV==='hh'){net70=tn;house70=r70.hc;amort70=r70.ma;other70=p1o+p2o;}
+    else{
+      const pn=CV==='p1'?p1n:p2n,po=CV==='p1'?p1o:p2o;
+      const rt70=SP==='5050'?0.5:(tn>0?(CV==='p1'?p1n:p2n)/tn:0.5);
+      net70=pn;house70=r70.hc*rt70;amort70=r70.ma*rt70;other70=po;
+    }
+    const sav70=net70-house70-amort70-other70,ns70=net70>0?net70:1;
+    const hp70=Math.min(house70/ns70*100,100),ap70=Math.min(amort70/ns70*100,Math.max(0,100-hp70));
+    const op70=Math.min(other70/ns70*100,Math.max(0,100-hp70-ap70));
+    const sp70=sav70>=0?Math.max(0,100-hp70-ap70-op70):0;
+    const np70=sav70<0?Math.min(Math.abs(sav70)/ns70*100,100-hp70-ap70-op70):0;
+    const sqIn70=net70-house70-other70,sqEx70=sav70;
+    const pIn70=net70>0?sqIn70/net70*100:0,pEx70=net70>0?sqEx70/net70*100:0;
+    const cIn70=pIn70<10?'#f87171':pIn70<20?'#fbbf24':'#4ade80';
+    const cEx70=pEx70<0?'#f87171':pEx70<10?'#fbbf24':'#4ade80';
+    const saving=Math.round(r.total-r70.total);
+    al70Html=`<div class="ltv-timeline" style="margin-top:10px">
+      <div class="ltv-tl-head">Kassaflöde vid LTV 70% — ${quarterLabel(yrs)}</div>
+      <div style="display:flex;height:28px;border-radius:4px;overflow:hidden;margin:8px 0 6px">
+        <div style="width:${hp70}%;background:#c0392b;height:100%"></div>
+        <div style="width:${ap70}%;background-image:repeating-linear-gradient(-45deg,#a32d2d 0,#a32d2d 3px,#f0a0a0 3px,#f0a0a0 7px);height:100%"></div>
+        <div style="width:${op70}%;background:#52525b;height:100%"></div>
+        <div style="width:${sp70}%;background:#2d6a4f;height:100%"></div>
+        <div style="width:${np70}%;background:#e24b4a;height:100%"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        <div class="ltv-mt"><div class="ltv-ml">Boendekostnad</div><div class="ltv-mv">${fK(Math.round(house70))}</div></div>
+        <div class="ltv-mt"><div class="ltv-ml">Amortering</div><div class="ltv-mv">${fK(Math.round(amort70))}</div></div>
+        <div class="ltv-mt"><div class="ltv-ml">Övriga utgifter</div><div class="ltv-mv">${fK(Math.round(other70))}</div></div>
+        <div class="ltv-mt"><div class="ltv-ml">Sparande</div><div class="ltv-mv" style="color:${sav70>=0?'#4ade80':'#f87171'}">${fK(Math.round(sav70))}</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px">
+        <div class="ltv-mt"><div class="ltv-ml">Sparkvot inkl. amort</div><div class="ltv-mv" style="color:${cIn70}">${pIn70.toFixed(0)}%</div><div class="ltv-ms">${fK(Math.round(sqIn70))}/mån</div></div>
+        <div class="ltv-mt"><div class="ltv-ml">Sparkvot exkl. amort</div><div class="ltv-mv" style="color:${cEx70}">${pEx70.toFixed(0)}%</div><div class="ltv-ms">${fK(Math.round(sqEx70))}/mån</div></div>
+      </div>
+      <div style="font-size:11px;color:#4a7aaa;text-align:center">Total kassaflöde: ${fK(Math.round(r70.total))}/mån · ${fK(saving)}/mån lägre än idag</div>
+    </div>`;
+  }
+  alWrap.innerHTML=`
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;flex-wrap:wrap;gap:6px">
+      <span style="font-size:12px;color:#4a7aaa;font-weight:600">LTV 70% nås ${quarterLabel(yrs)}</span>
+      <button class="btn${SHOW_LTV_AL?' on':''}" id="ltv-al-btn" onclick="toggleLtvAl()">Visa</button>
+    </div>${al70Html}`;
+}
+
+function rp(){
+  const down=gDown(),rate=gRate(),rfPct=gRf(),drift=gDrift(),fss=gFss();
+  const p1o=gP1o(),p2o=gP2o();
+  const p1n=netM(gP1g()),p2n=netM(gP2g());
+  const t1=parseFloat(g('t1').value)||0,t2=parseFloat(g('t2').value)||0;
+  const sr=parseFloat(g('sr').value)/100;
+  g('sr-v').textContent=(sr*100).toFixed(1)+'%';
+  if(TM==='kr'){
+    g('t1-v').textContent=fK(t1)+'/mån';g('t2-v').textContent=fK(t2)+'/mån';
+    g('t1-b').innerHTML='<span>0 kr</span><span>50 000 kr</span>';g('t2-b').innerHTML='<span>0 kr</span><span>50 000 kr</span>';
+    g('t1-h').textContent=`Netto ~${fK(Math.round(p1n))}/mån · max till boende ${fK(Math.max(0,Math.round(p1n-p1o-t1)))}/mån`;
+    g('t2-h').textContent=`Netto ~${fK(Math.round(p2n))}/mån · max till boende ${fK(Math.max(0,Math.round(p2n-p2o-t2)))}/mån`;
+  } else {
+    g('t1-v').textContent=t1.toFixed(0)+'%';g('t2-v').textContent=t2.toFixed(0)+'%';
+    g('t1-b').innerHTML='<span>0%</span><span>50%</span>';g('t2-b').innerHTML='<span>0%</span><span>50%</span>';
+    g('t1-h').textContent=`Netto ~${fK(Math.round(p1n))}/mån · ${t1}% = ${fK(Math.round(p1n*t1/100))}/mån sparmål`;
+    g('t2-h').textContent=`Netto ~${fK(Math.round(p2n))}/mån · ${t2}% = ${fK(Math.round(p2n*t2/100))}/mån sparmål`;
+  }
+  const c1=findCeil(t1,t2,p1n,p2n,p1o,p2o,down,rfPct,rate,fss,drift);
+  const cf1=c1.ceil?cashFlow(c1.ceil,p1n,p2n,p1o,p2o,down,rfPct,rate,fss,drift):null;
+  const c2=findCeil(t1,t2,p1n,p2n,p1o,p2o,down,rfPct,sr,fss,drift);
+  const cf2=c2.ceil?cashFlow(c2.ceil,p1n,p2n,p1o,p2o,down,rfPct,sr,fss,drift):null;
+  const inc=incScenario(INC);
+  // Column 3: rate-only when no income scenario; rate+income (with amort override) for scenarios
+  const col3rf=RF_PAUSE?0:rfPct;
+  const cfRateOnly=c1.ceil?cashFlow(c1.ceil,p1n,p2n,p1o,p2o,down,col3rf,sr,fss,drift):null;
+  const cfCombo=c1.ceil&&INC!=='none'?cashFlow(c1.ceil,inc.p1n,inc.p2n,p1o,p2o,down,col3rf,sr,fss,drift,inc.amort):null;
+  g('sc-grid').innerHTML=
+    colNorm(c1.ceil,c1.binding,cf1,t1,t2,rate)+
+    colStress(c2.ceil,c2.binding,cf2,t1,t2,c1.ceil,sr)+
+    colCombo(c1.ceil,cfCombo,cfRateOnly,t1,t2,inc.lbl,sr);
+}
+
+function ra(){rSet();rHouse();if(g('tab-p').className.includes('on'))rp();save();}
+['p1g','p2g','p1o','p2o','drift','fss'].forEach(id=>sf(id));
+// Also save on slider/range changes
+['down','rate','rf','price','t1','t2','sr','h-sr'].forEach(id=>{
+  const el=g(id);if(el)el.addEventListener('change',save);
+});
+load();ra();
+</script>
+</body>
+</html>
